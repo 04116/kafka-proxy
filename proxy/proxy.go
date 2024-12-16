@@ -4,11 +4,13 @@ import (
 	"crypto/tls"
 	"fmt"
 	"net"
+	"strings"
 	"sync"
+
+	"github.com/sirupsen/logrus"
 
 	"github.com/grepplabs/kafka-proxy/config"
 	"github.com/grepplabs/kafka-proxy/pkg/libs/util"
-	"github.com/sirupsen/logrus"
 )
 
 type ListenFunc func(cfg config.ListenerConfig) (l net.Listener, err error)
@@ -33,7 +35,6 @@ type Listeners struct {
 }
 
 func NewListeners(cfg *config.Config) (*Listeners, error) {
-
 	defaultListenerIP := cfg.Proxy.DefaultListenerIP
 	dynamicAdvertisedListener := cfg.Proxy.DynamicAdvertisedListener
 
@@ -122,6 +123,12 @@ func (p *Listeners) GetNetAddressMapping(brokerHost string, brokerPort int32) (l
 		return "", 0, fmt.Errorf("broker address '%s:%d' is invalid", brokerHost, brokerPort)
 	}
 
+	if strings.HasPrefix(brokerHost, "b-2") {
+		brokerPort = 19092
+	}
+	if strings.HasPrefix(brokerHost, "b-3") {
+		brokerPort = 29092
+	}
 	brokerAddress := net.JoinHostPort(brokerHost, fmt.Sprint(brokerPort))
 
 	p.lock.RLock()
